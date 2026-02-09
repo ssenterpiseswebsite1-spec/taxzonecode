@@ -27,7 +27,7 @@ export default function PlaceOrderButton({ customer }) {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
 
       if (!res.ok) throw new Error(data.error);
 

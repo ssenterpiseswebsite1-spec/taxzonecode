@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server";
 
+async function safeJson(res) {
+  const contentType = res.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    const text = await res.text();
+    console.error("Search API returned non-JSON:", text.slice(0, 200));
+    return [];
+  }
+
+  return res.json();
+}
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q");
@@ -16,6 +28,11 @@ export async function GET(req) {
     }
   );
 
-  const data = await res.json();
+  const data = await safeJson(res);
+
+  if (!res.ok) {
+    return NextResponse.json([]);
+  }
+
   return NextResponse.json(data);
 }

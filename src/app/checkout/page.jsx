@@ -57,7 +57,7 @@ export default function CheckoutPage() {
       }),
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
     if (res.ok) {
       clearCart();

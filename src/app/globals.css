@@ -1,6 +1,9 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 
+/* your custom animation */
 @keyframes slide-in {
   from {
     transform: translateX(-100%);

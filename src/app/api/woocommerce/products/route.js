@@ -12,6 +12,18 @@ const CATEGORY_MAP = {
   "recommended-for-you": 18,
 };
 
+async function safeJson(res) {
+  const contentType = res.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    const text = await res.text();
+    console.error("WC products API returned non-JSON:", text.slice(0, 200));
+    return [];
+  }
+
+  return res.json();
+}
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -20,7 +32,6 @@ export async function GET(req) {
 
     let query = `?orderby=${orderby}&per_page=8`;
 
-    // ✅ Convert slug → ID
     if (categorySlug && CATEGORY_MAP[categorySlug]) {
       query += `&category=${CATEGORY_MAP[categorySlug]}`;
     }
@@ -33,7 +44,15 @@ export async function GET(req) {
       },
     });
 
-    const data = await res.json();
+    const data = await safeJson(res);
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch products" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(

@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
 
+async function safeJson(res) {
+  const contentType = res.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    const text = await res.text();
+    console.error("WC order API returned non-JSON:", text.slice(0, 200));
+    return null;
+  }
+
+  return res.json();
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();
     const { customer, items } = body;
 
-    // ✅ HARD VALIDATION (NO SILENT FAILS)
     if (
       !customer ||
       !customer.firstName ||
@@ -72,16 +83,19 @@ export async function POST(req) {
       }
     );
 
-    const data = await res.json();
+    const data = await safeJson(res);
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: data.message || "Order failed" },
+        { error: data?.message || "Order failed" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ success: true, order: data });
+    return NextResponse.json({
+      success: true,
+      order: data,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err.message },

@@ -6,7 +6,15 @@ export async function getCategoryIdBySlug(slug) {
     { cache: "no-store" }
   );
 
-  const data = await res.json();
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    console.error("Category API returned non-JSON:", text.slice(0, 200));
+    return null;
+  }
 
   if (!Array.isArray(data) || data.length === 0) {
     console.error("Category slug not found:", slug, data);

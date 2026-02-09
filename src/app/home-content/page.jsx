@@ -3,6 +3,7 @@ import ProductGrid from "./component/products/ProductGrid";
 export default function HomePage() {
   return (
     <>
+    
       <div className="min-h-[100vh]">
         <ProductGrid
         title="🔥 Best Sellers"
@@ -23,6 +24,10 @@ export default function HomePage() {
         title="⭐ Recommended For You"
         slug="recommended"
       />
+      <div className="bg-red-600 text-white text-4xl p-10">
+  Tailwind is working
+</div>
+
       </div>
     </>
   );

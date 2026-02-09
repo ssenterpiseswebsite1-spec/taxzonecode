@@ -21,7 +21,7 @@ export default function SearchBar() {
         const delay = setTimeout(async () => {
             setLoading(true);
             const res = await fetch(`/api/woocommerce/search?q=${query}`);
-            const data = await res.json();
+            const text = await res.text();
             setResults(data || []);
             setLoading(false);
         }, 300);
