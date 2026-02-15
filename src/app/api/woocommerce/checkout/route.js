@@ -40,7 +40,6 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Convert customer_id to number (VERY IMPORTANT)
     const numericCustomerId = Number(customer_id);
 
     if (isNaN(numericCustomerId)) {
@@ -55,26 +54,28 @@ export async function POST(req) {
       quantity: Number(item.quantity),
     }));
 
-    // 🔥 Create WooCommerce Order
-    const response = await fetch(
-      `${WC_API}/orders?consumer_key=${CONSUMER_KEY}&consumer_secret=${CONSUMER_SECRET}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customer_id: numericCustomerId, // ✅ fixed
-          payment_method: payment_method || "cod",
-          payment_method_title:
-            payment_method_title || "Cash on Delivery",
-          set_paid: set_paid || false,
-          billing,
-          shipping: billing,
-          line_items,
-        }),
-      }
-    );
+    // ✅ Proper Basic Auth Header
+    const auth = Buffer.from(
+      `${CONSUMER_KEY}:${CONSUMER_SECRET}`
+    ).toString("base64");
+
+    const response = await fetch(`${WC_API}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`,
+      },
+      body: JSON.stringify({
+        customer_id: numericCustomerId,
+        payment_method: payment_method || "cod",
+        payment_method_title:
+          payment_method_title || "Cash on Delivery",
+        set_paid: set_paid || false,
+        billing,
+        shipping: billing,
+        line_items,
+      }),
+    });
 
     const data = await response.json();
 
@@ -85,7 +86,7 @@ export async function POST(req) {
           message: "Order creation failed",
           error: data,
         },
-        { status: 500 }
+        { status: response.status }
       );
     }
 
