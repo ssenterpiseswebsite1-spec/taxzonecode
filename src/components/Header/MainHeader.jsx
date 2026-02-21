@@ -37,7 +37,6 @@ export default function MainHeader() {
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
     { name: "Track Order", href: "/track-order" },
-    { name: "Contact Us", href: "/contact" },
   ];
 
   const isActive = (href) => {

@@ -43,40 +43,52 @@ export default function SearchBar() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full">
+    <div ref={wrapperRef} className="relative w-full max-w-2xl mx-auto">
 
       {/* SEARCH BAR */}
-      <div className="flex w-full">
+      <div className="flex items-center bg-white border border-gray-200 rounded-full px-5 py-3 shadow-sm 
+                      focus-within:ring-2 focus-within:ring-[#f97316] 
+                      focus-within:border-[#f97316] 
+                      transition-all duration-300">
 
-        <div className="flex items-center flex-1 border border-gray-300 rounded-l-md bg-white px-3">
-          <Search size={18} className="text-gray-500 mr-2" />
+        {/* ICON */}
+        <Search size={18} className="text-[#f97316] mr-3" />
 
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search for products..."
-            className="w-full py-2 text-sm outline-none"
-          />
+        {/* INPUT */}
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          placeholder="Search Products, Brands and More..."
+          className="flex-1 bg-transparent text-sm md:text-base text-gray-800 outline-none placeholder:text-gray-400"
+        />
 
-          {query && (
-            <button onClick={() => setQuery("")}>
-              <X size={16} className="text-gray-400 hover:text-gray-700" />
-            </button>
-          )}
-        </div>
+        {/* CLEAR BUTTON */}
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            className="ml-2 p-1 rounded-full hover:bg-orange-100 transition"
+          >
+            <X size={16} className="text-gray-500" />
+          </button>
+        )}
 
+        {/* SEARCH BUTTON */}
         <button
           onClick={handleSearch}
-          className="bg-[#ea580c] hover:bg-red-700 text-white px-6 text-sm font-semibold rounded-r-md transition"
+          className="ml-3 bg-[#f97316] hover:bg-[#ea580c] 
+                     text-white text-sm font-semibold 
+                     px-6 py-2 rounded-full transition 
+                     hidden sm:block"
         >
-          SEARCH
+          Search
         </button>
       </div>
 
       {/* DROPDOWN */}
       {query.length >= 2 && (
-        <div className="absolute z-50 bg-white border w-full mt-1 rounded-md shadow-xl max-h-96 overflow-y-auto">
+        <div className="absolute z-50 bg-white w-full mt-3 rounded-2xl shadow-2xl 
+                        border border-gray-100 overflow-hidden max-h-96 overflow-y-auto">
 
           {loading && (
             <p className="p-4 text-sm text-gray-500">Searching...</p>
@@ -91,24 +103,24 @@ export default function SearchBar() {
               <Link
                 key={p.id}
                 href={`/product/${p.slug}`}
-                className="flex items-center gap-3 p-3 hover:bg-gray-100 transition"
+                className="flex items-center gap-4 p-4 hover:bg-orange-50 transition"
                 onClick={() => setQuery("")}
               >
                 <Image
                   src={p.images?.[0]?.src || "/placeholder.png"}
                   alt={p.name}
-                  width={50}
-                  height={50}
-                  className="rounded object-cover"
+                  width={60}
+                  height={60}
+                  className="rounded-lg object-cover border border-gray-100"
                 />
 
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800 line-clamp-1">
                     {p.name}
                   </p>
 
                   <p
-                    className="text-xs text-red-600"
+                    className="text-sm font-semibold text-[#f97316]"
                     dangerouslySetInnerHTML={{
                       __html: p.price_html,
                     }}

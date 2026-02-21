@@ -1,5 +1,5 @@
-import AboutSection from "../../components/AboutSection";
 import ProductCard from "../home-content/component/products/ProductCard";
+import InfiniteProductGrid from "./components/InfiniteProductGrid";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -32,8 +32,7 @@ async function getProducts({ page = 1, category = null }) {
       totalPages,
       totalProducts,
     };
-  } catch (error) {
-    console.error(error);
+  } catch {
     return { products: [], totalPages: 1, totalProducts: 0 };
   }
 }
@@ -47,7 +46,7 @@ async function getCategories() {
       { next: { revalidate: 300 } }
     );
 
-    if (!res.ok) throw new Error("Failed to fetch categories");
+    if (!res.ok) throw new Error("Failed");
 
     return await res.json();
   } catch {
@@ -59,27 +58,13 @@ async function getCategories() {
 
 function ProductGridSkeleton() {
   return (
-    <div
-      className="
-        grid
-        grid-cols-2
-        sm:grid-cols-3
-        md:grid-cols-4
-        lg:grid-cols-5
-        xl:grid-cols-6
-        gap-5
-      "
-    >
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
       {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white rounded-xl border border-gray-100 animate-pulse"
-        >
+        <div key={i} className="bg-white rounded-xl border animate-pulse">
           <div className="aspect-square bg-gray-200 rounded-t-xl" />
           <div className="p-4 space-y-3">
             <div className="h-4 bg-gray-200 rounded w-3/4" />
             <div className="h-4 bg-gray-200 rounded w-1/2" />
-            <div className="h-3 bg-gray-200 rounded w-full" />
           </div>
         </div>
       ))}
@@ -89,26 +74,26 @@ function ProductGridSkeleton() {
 
 /* ---------------- SHOP CONTENT ---------------- */
 
-async function ShopContent({ currentPage, selectedCategory }) {
+async function ShopContent({ selectedCategory }) {
   const categories = await getCategories();
 
   const categoryId = selectedCategory
     ? categories.find((c) => c.slug === selectedCategory)?.id
     : null;
 
-  const { products, totalPages, totalProducts } = await getProducts({
-    page: currentPage,
-    category: categoryId,
-  });
+  const { products, totalPages, totalProducts } =
+    await getProducts({
+      page: 1,
+      category: categoryId,
+    });
 
   return (
     <>
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-            <span className="text-gray-800">Shop</span>{" "}
-            <span className="text-orange-600">Products</span>
+          <h1 className="text-3xl font-bold">
+            Shop <span className="text-orange-600">Products</span>
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {totalProducts.toLocaleString()} products available
@@ -116,18 +101,18 @@ async function ShopContent({ currentPage, selectedCategory }) {
         </div>
       </div>
 
-      {/* ================= STICKY FILTER ================= */}
-      <div className="sticky top-0 z-20 bg-gray-50 pb-4">
+      {/* FILTERS */}
+      <div className="sticky top-0 bg-gray-50 z-20 pb-4">
         <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
 
           <Link
             href="/shop"
-            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200
-            ${
-              !selectedCategory
-                ? "bg-orange-600 text-white shadow-md"
-                : "bg-white border border-gray-200 hover:border-orange-400 text-gray-700"
-            }`}
+            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap
+              ${
+                !selectedCategory
+                  ? "bg-orange-600 text-white"
+                  : "bg-white border"
+              }`}
           >
             All
           </Link>
@@ -136,75 +121,34 @@ async function ShopContent({ currentPage, selectedCategory }) {
             <Link
               key={cat.id}
               href={`/shop?category=${cat.slug}`}
-              className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200
-              ${
-                selectedCategory === cat.slug
-                  ? "bg-orange-600 text-white shadow-md"
-                  : "bg-white border border-gray-200 hover:border-orange-400 text-gray-700"
-              }`}
+              className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap
+                ${
+                  selectedCategory === cat.slug
+                    ? "bg-orange-600 text-white"
+                    : "bg-white border"
+                }`}
             >
               {cat.name}
             </Link>
           ))}
+
         </div>
       </div>
 
-      {/* ================= PRODUCTS ================= */}
+      {/* PRODUCTS */}
       <div className="mt-8">
         {products.length === 0 ? (
           <div className="text-center py-24 text-gray-500">
             No products found.
           </div>
         ) : (
-          <div
-            className="
-              grid
-              grid-cols-2
-              sm:grid-cols-3
-              md:grid-cols-4
-              lg:grid-cols-5
-              xl:grid-cols-6
-              gap-5
-            "
-          >
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <InfiniteProductGrid
+            initialProducts={products}
+            totalPages={totalPages}
+            selectedCategory={categoryId}
+          />
         )}
       </div>
-
-      {/* ================= PAGINATION ================= */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-14">
-          <div className="flex gap-2 flex-wrap">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(
-                Math.max(0, currentPage - 2),
-                Math.min(totalPages, currentPage + 3)
-              )
-              .map((page) => (
-                <Link
-                  key={page}
-                  href={`/shop?page=${page}${
-                    selectedCategory
-                      ? `&category=${selectedCategory}`
-                      : ""
-                  }`}
-                  scroll={false}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                  ${
-                    page === currentPage
-                      ? "bg-orange-600 text-white shadow-md"
-                      : "bg-white border border-gray-200 hover:border-orange-500 text-gray-700"
-                  }`}
-                >
-                  {page}
-                </Link>
-              ))}
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -212,18 +156,14 @@ async function ShopContent({ currentPage, selectedCategory }) {
 /* ---------------- SHOP PAGE ---------------- */
 
 export default function ShopPage({ searchParams }) {
-  const currentPage = Number(searchParams?.page) || 1;
   const selectedCategory = searchParams?.category || null;
 
   return (
     <section className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 py-10">
 
         <Suspense fallback={<ProductGridSkeleton />}>
-          <ShopContent
-            currentPage={currentPage}
-            selectedCategory={selectedCategory}
-          />
+          <ShopContent selectedCategory={selectedCategory} />
         </Suspense>
 
       </div>

@@ -23,95 +23,119 @@ export default async function ProductGrid({ title, slug, limit = 8 }) {
   const products = await res.json();
   if (!Array.isArray(products) || products.length === 0) return null;
 
-  return (
-    <section className="mb-20">
+ return (
+  <section className="mb-20 bg-[#f1f3f6] py-8 rounded-[32px]">
 
-      {/* Section Title */}
-      <div className="px-4 md:px-0 mb-8">
-        <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
-          {title}
-        </h2>
-      </div>
+    <div
+      className="
+        no-scrollbar
+        flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4
+        md:grid md:grid-cols-4 lg:grid-cols-5 md:gap-6 md:overflow-visible md:px-0 max-w-7xl mx-auto
+      "
+    >
+      {products.map((p) => {
+        const image =
+          p.images?.[0]?.src || "https://via.placeholder.com/600";
 
-      {/* Products Container */}
-      <div
-        className="
-          no-scrollbar
-          flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4
-          md:grid md:grid-cols-4 lg:grid-cols-5 md:gap-6 md:overflow-visible md:px-0
-        "
-      >
-        {products.map((p) => {
-          const image =
-            p.images?.[0]?.src || "https://via.placeholder.com/600";
+        const regularPrice = parseFloat(p.regular_price || 0);
+        const salePrice = parseFloat(p.sale_price || 0);
+        const discount =
+          regularPrice && salePrice
+            ? Math.round(
+                ((regularPrice - salePrice) / regularPrice) * 100
+              )
+            : null;
 
-          return (
-            <div
-              key={p.id}
-              className="
-                group
-                min-w-[70%] sm:min-w-[45%] md:min-w-0
-                bg-white
-                border border-gray-100
-                rounded-xl
-                hover:shadow-md
-                transition-all duration-300
-                snap-start
-                flex flex-col
-              "
+        return (
+          <div
+            key={p.id}
+            className="
+              group
+              min-w-[80%] sm:min-w-[65%] md:min-w-0
+              bg-white
+              hover:shadow-md
+              transition-all duration-300
+              flex flex-col
+              !snap-center
+              rounded-[32px]
+              
+            "
+          >
+            {/* Clickable Area */}
+            <Link
+              href={`/product/${p.slug}`}
+              className="flex flex-col flex-1 rounded-[12px] "
             >
-              {/* Clickable Area */}
-              <Link
-                href={`/product/${p.slug}`}
-                className="flex flex-col flex-1"
-              >
-                {/* Image (smaller + balanced ratio) */}
-                <div className="relative w-full aspect-square bg-gray-50 rounded-t-xl overflow-hidden">
-                  <Image
-                    src={image}
-                    alt={p.name}
-                    fill
-                    sizes="(max-width: 768px) 70vw, (max-width: 1200px) 25vw, 20vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4 flex flex-col flex-1">
-
-                  {/* Product Name */}
-                  <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1">
-                    {p.name}
-                  </h3>
-
-                  {/* Price */}
-                  {p.price_html && (
-                    <div
-                      className="text-sm font-semibold text-orange-600 mb-2"
-                      dangerouslySetInnerHTML={{
-                        __html: p.price_html,
-                      }}
-                    />
-                  )}
-
-                  {/* Short Description (Shortened for UX) */}
-                  <p className="text-xs text-gray-500 line-clamp-2 flex-1">
-                    {p.short_description
-                      ?.replace(/(<([^>]+)>)/gi, "")
-                      .slice(0, 90) ||
-                      "Premium quality protection for durability and all-weather performance."}
-                  </p>
-                </div>
-              </Link>
-
-              {/* Add to Cart */}
-              <div className="px-4 pb-4">
-                <AddToCartButton product={p} />
+              {/* Image */}
+              <div className="relative w-full  aspect-square bg-white rounded-[12px] overflow-hidden">
+                <Image
+                  src={image}
+                  alt={p.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 25vw, 20vw"
+                  className="object-cover !rounded-[12px] group-hover:scale-105 transition-transform duration-500 p-2"
+                />
               </div>
+
+              {/* Product Info */}
+              <div className="px-4 py-3 flex flex-col flex-1">
+
+                {/* Title */}
+                <h3 className="text-sm text-gray-800 line-clamp-2 leading-5 mb-1">
+                  {p.name}
+                </h3>
+
+                {/* Rating (Static Style Like Flipkart) */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-green-600 text-white text-xs px-2 py-[2px] rounded-sm font-medium">
+                    4.2 ★
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    (120)
+                  </span>
+                </div>
+
+                {/* Price Section */}
+                <div className="flex items-center gap-2 mb-2">
+                  {salePrice ? (
+                    <>
+                      <span className="text-base font-semibold text-gray-900">
+                        ₹{salePrice}
+                      </span>
+                      <span className="text-xs text-gray-500 line-through">
+                        ₹{regularPrice}
+                      </span>
+                      {discount && (
+                        <span className="text-xs text-green-600 font-medium">
+                          {discount}% off
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-base font-semibold text-gray-900">
+                      ₹{regularPrice}
+                    </span>
+                  )}
+                </div>
+
+                {/* Short Description */}
+                <p className="text-xs text-gray-500 line-clamp-2 flex-1">
+                  {p.short_description
+                    ?.replace(/(<([^>]+)>)/gi, "")
+                    .slice(0, 80) ||
+                    "Premium quality protection for durability and all-weather performance."}
+                </p>
+              </div>
+            </Link>
+
+            {/* Add To Cart */}
+            <div className="px-4 pb-4">
+              <AddToCartButton product={p} />
             </div>
-          );
-        })}
-      </div>
-    </section>
-  );
+          </div>
+        );
+      })}
+    </div>
+  </section>
+);
 }

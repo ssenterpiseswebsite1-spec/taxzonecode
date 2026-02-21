@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -9,146 +9,221 @@ const slides = [
     id: 1,
     title: "Premium Car Covers",
     subtitle: "Ultimate Protection",
-    description:
-      "Shield your vehicle from dust, rain, UV rays & scratches with our high-quality waterproof covers.",
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2000",
-    cta: "Shop Car Covers",
     href: "/shop",
   },
   {
     id: 2,
     title: "All Weather Protection",
     subtitle: "Built For Every Season",
-    description:
-      "Snow, rain or heat — our covers are engineered to protect your car year round.",
     image:
       "https://images.unsplash.com/photo-1613214149922-f1809c99b414?q=80&w=2000",
-    cta: "Explore Collection",
     href: "/shop",
   },
   {
     id: 3,
     title: "Custom Fit Designs",
     subtitle: "Perfect Fit Guaranteed",
-    description:
-      "Tailored covers designed for SUVs, sedans & luxury cars with breathable fabric technology.",
     image:
       "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=2000",
-    cta: "View Best Sellers",
     href: "/shop",
   },
 ];
 
-export default function HeroBanner() {
-  const [current, setCurrent] = useState(0);
+const brands = [
+  { name: "Hyundai", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/hyundai.jpg", href: "/category/hyundai" },
+  { name: "Maruti", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/maruti.jpg", href: "/category/maruti" },
+  { name: "Tata", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/tata.webp", href: "/category/tata" },
+  { name: "Mahindra", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/mahindra-scaled.png", href: "/category/mahindra" },
+  { name: "Toyota", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/toyota.png", href: "/category/toyota" },
+  { name: "Honda", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/honda.png", href: "/category/honda" },
+  { name: "Kia", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/kia.webp", href: "/category/kia" },
+  { name: "MG", image: "https://backend.taxzone.store/wp/wp-content/uploads/2026/02/mg-car-removebg-preview.png", href: "/category/mg" },
+];
 
+export default function HeroSection() {
+  const [current, setCurrent] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [enableTransition, setEnableTransition] = useState(true);
+  const intervalRef = useRef(null);
+
+  const extendedSlides = [
+    slides[slides.length - 1],
+    ...slides,
+    slides[0],
+  ];
+
+  // Detect mobile
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 6000);
-
-    return () => clearInterval(timer);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const prevSlide = () =>
-    setCurrent((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  // Auto Slide
+  useEffect(() => {
+    startAuto();
+    return stopAuto;
+  }, []);
 
-  const nextSlide = () =>
-    setCurrent((prev) => (prev + 1) % slides.length);
+  const startAuto = () => {
+    stopAuto();
+    intervalRef.current = setInterval(() => {
+      setCurrent((prev) => prev + 1);
+    }, 4000);
+  };
+
+  const stopAuto = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  };
+
+  // REAL Infinite Loop Fix (No Jump)
+  useEffect(() => {
+    if (current === extendedSlides.length - 1) {
+      setTimeout(() => {
+        setEnableTransition(false);
+        setCurrent(1);
+      }, 700);
+    }
+
+    if (current === 0) {
+      setTimeout(() => {
+        setEnableTransition(false);
+        setCurrent(slides.length);
+      }, 700);
+    }
+  }, [current]);
+
+  // Re-enable transition after reset
+  useEffect(() => {
+    if (!enableTransition) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEnableTransition(true);
+        });
+      });
+    }
+  }, [enableTransition]);
 
   return (
-    <section className="relative w-full h-[80vh] md:h-[90vh] lg:h-screen overflow-hidden">
+    <section className="w-full bg-[#f1f3f6] py-8">
+      <div className="max-w-7xl mx-auto px-4">
 
-      {/* Slides */}
-      {slides.map((slide, index) => (
+        {/* HERO */}
         <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === current ? "opacity-100 z-20" : "opacity-0 z-0"
-          }`}
+          className="relative overflow-hidden"
+          onMouseEnter={stopAuto}
+          onMouseLeave={startAuto}
         >
-          {/* Background */}
           <div
-            className={`absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-[7000ms] ${
-              index === current ? "scale-110" : "scale-105"
+            className={`flex ${
+              enableTransition
+                ? "transition-transform duration-700 ease-in-out"
+                : ""
             }`}
-            style={{ backgroundImage: `url(${slide.image})` }}
-          />
+            style={{
+              transform: `translateX(-${current * (isMobile ? 100 : 80)}%)`,
+            }}
+          >
+            {extendedSlides.map((slide, index) => (
+              <div
+                key={index}
+                className="flex-none w-full md:w-[80%] h-[50vh] md:pr-6"
+              >
+                <div className="h-full rounded-3xl overflow-hidden shadow-lg relative bg-white">
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="w-full h-full object-cover"
+                  />
 
-          {/* Content */}
-          <div className="relative z-30 flex items-center h-full">
-            <div className="max-w-7xl mx-auto px-6 w-full">
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
 
-              <div className="max-w-2xl text-white animate-fadeInUp">
+                  <div className="absolute bottom-8 left-6 md:left-10 text-white">
+                    <p className="text-xs md:text-sm uppercase tracking-wide text-orange-400">
+                      {slide.subtitle}
+                    </p>
+                    <h2 className="text-lg md:text-4xl font-bold mt-2">
+                      {slide.title}
+                    </h2>
+                    <Link
+                      href={slide.href}
+                      className="inline-block mt-4 px-6 py-3 bg-orange-600 hover:bg-orange-700 transition rounded-full text-sm font-semibold"
+                    >
+                      Shop Now
+                    </Link>
+                  </div>
 
-                <p className="uppercase tracking-widest text-sm md:text-base text-red-500 mb-4">
-                  {slide.subtitle}
-                </p>
-
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold leading-tight">
-                  {slide.title}
-                </h1>
-
-                <p className="mt-4 text-sm sm:text-base md:text-lg text-gray-300">
-                  {slide.description}
-                </p>
-
-                {/* CTA Buttons */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                  <Link
-                    href={slide.href}
-                    className="px-8 py-4 bg-[#ea580c] hover:bg-red-700 transition rounded-full font-semibold text-center shadow-lg"
-                  >
-                    {slide.cta}
-                  </Link>
-
-                  <Link
-                    href="/about"
-                    className="px-8 py-4 border border-white/40 hover:bg-white hover:text-black transition rounded-full font-semibold text-center"
-                  >
-                    Learn More
-                  </Link>
                 </div>
-
               </div>
+            ))}
+          </div>
 
-            </div>
+          {/* Arrows Desktop Only */}
+          <button
+            onClick={() => setCurrent((prev) => prev - 1)}
+            className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 hover:scale-105 transition"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <button
+            onClick={() => setCurrent((prev) => prev + 1)}
+            className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 hover:scale-105 transition"
+          >
+            <ChevronRight size={18} />
+          </button>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-6">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrent(index + 1)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  current === index + 1
+                    ? "w-8 bg-orange-600"
+                    : "w-2 bg-gray-400"
+                }`}
+              />
+            ))}
           </div>
         </div>
-      ))}
 
-      {/* Arrows */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/10 backdrop-blur hover:bg-white/30 text-white transition"
-      >
-        <ChevronLeft size={28} />
-      </button>
+        {/* CATEGORY SECTION */}
+        <div className="mt-12 bg-white rounded-3xl shadow-md p-6 md:p-8">
+          <h3 className="text-lg md:text-xl font-semibold mb-8 text-center">
+            Shop By Car Brand
+          </h3>
 
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white/10 backdrop-blur hover:bg-white/30 text-white transition"
-      >
-        <ChevronRight size={28} />
-      </button>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6">
+            {brands.map((brand, index) => (
+              <Link
+                key={index}
+                href={brand.href}
+                className="flex flex-col items-center group"
+              >
+                <div className="bg-gray-50 p-4 rounded-2xl hover:shadow-md transition duration-300 w-full flex justify-center">
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="h-8 md:h-10 object-contain group-hover:scale-110 transition"
+                  />
+                </div>
+                <span className="text-xs mt-2 text-gray-600 group-hover:text-black">
+                  {brand.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      {/* Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-40">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-3 h-3 rounded-full transition ${
-              i === current ? "bg-[#ea580c] scale-125" : "bg-white/40"
-            }`}
-          />
-        ))}
       </div>
-
     </section>
   );
 }

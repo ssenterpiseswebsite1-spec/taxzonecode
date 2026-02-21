@@ -27,7 +27,7 @@ export default function AddToCartButton({ product }) {
       className={`w-full py-2 rounded-lg text-white font-medium ${
         loading
           ? "bg-gray-400"
-          : "bg-black hover:bg-gray-800"
+          : "bg-[#c1420e] hover:bg-[#a73508]"
       }`}
     >
       {loading ? "Adding…" : "Add to Cart"}
