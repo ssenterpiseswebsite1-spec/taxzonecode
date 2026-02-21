@@ -1,8 +1,5 @@
 
-import ProductCard from "../home-content/component/products/ProductCard";
 import InfiniteProductGrid from "./components/InfiniteProductGrid";
-import AboutSection from "../../components/AboutSection";
-import ProductCard from "../home-content/component/products/ProductCard";
 import Link from "next/link";
 import { Suspense } from "react";
 
