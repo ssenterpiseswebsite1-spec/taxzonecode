@@ -16,7 +16,7 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    message: "",
+    message: "",   
   });
 
   const [loading, setLoading] = useState(false);
